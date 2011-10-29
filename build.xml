@@ -1,0 +1,39 @@
+<!-- http://www.vaannila.com/ant/ant-sample-build-file-war-1.html -->
+<project name="OneVillage" default="deploy">
+
+	<target name="init">
+		<property name="tomcat.dest" value="/opt/tomcat/webapps" />
+		<mkdir dir="build/classes"/>
+		<mkdir dir="dist" />
+	</target>
+	
+	<path id="compile.classpath">
+		<fileset dir="WebContent/WEB-INF/lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="compile" depends="init" >
+		<javac destdir="build/classes" debug="true" srcdir="src">
+			<classpath refid="compile.classpath"/>
+		</javac>
+	</target>
+	
+	<target name="war" depends="compile">
+		<war destfile="dist/OneVillage.war" webxml="WebContent/WEB-INF/web.xml">
+			<fileset dir="WebContent"/>
+			<lib dir="WebContent/WEB-INF/lib"/>
+			<classes dir="build/classes"/>
+		</war>
+	</target>
+	
+	<target name="deploy" depends="clean,war">
+		<copy file="dist/OneVillage.war" toDir="${tomcat.dest}" />
+	</target>
+	
+	<target name="clean">
+		<delete dir="dist" />
+		<delete dir="build" />
+	</target>
+	
+</project>
