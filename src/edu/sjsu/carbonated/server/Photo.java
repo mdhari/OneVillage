@@ -1,22 +1,28 @@
 package edu.sjsu.carbonated.server;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-// POJO, no interface no extends
+import edu.sjsu.carbonated.data.CreateAlbumResource;
+import edu.sjsu.carbonated.data.MyJaxbBean;
 
-// The class registers its methods for the HTTP GET request using the @GET annotation. 
-// Using the @Produces annotation, it defines that it can deliver several MIME types,
-// text, XML and HTML. 
 
-// The browser requests per default the HTML MIME type.
-
-//Sets the path to base URL + /hello
+/**
+ * 
+ * @author Michael Hari
+ * @version 1.0 10/30/11
+ * @desc Implementation of the photo endpoint
+ * @see http://jersey.java.net/nonav/documentation/latest/user-guide.html#d4e828
+ *
+ */
 @Path("/photo")
 public class Photo {
 
+	// XXX: TO REMOVE
 	// This method is called if TEXT_PLAIN is request
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
@@ -24,6 +30,7 @@ public class Photo {
 		return "Hello, I'm a Rest Server, won't you please add methods to me?";
 	}
 
+	// XXX: TO REMOVE
 	// This method is called if XML is request
 	@GET
 	@Produces(MediaType.TEXT_XML)
@@ -31,6 +38,7 @@ public class Photo {
 		return "<?xml version=\"1.0\"?>" + "<hello> Hello Jersey" + "</hello>";
 	}
 
+	// XXX: TO REMOVE
 	// This method is called if HTML is request
 	@GET
 	@Produces(MediaType.TEXT_HTML)
@@ -38,5 +46,27 @@ public class Photo {
 		return "<html> " + "<title>" + "Hello Jersey" + "</title>"
 				+ "<body><h1>" + "I'm a Rest Server, won't you please add methods to me?" + "</body></h1>" + "</html> ";
 	}
+	
+
+	/**
+	 * @param request - JAXB will take a JSON or XML request and convert it 
+	 * correctly into the POJO class defined
+	 * @return Currently echos the client request, JAXB will also convert
+	 * to send across the wire
+	 * <p>
+	 * Standing HTTP error codes get handled without us having
+	 * to throw them (415 Unsupported Media Type, 500 Server Error)
+	 */
+	@Path("/album")
+	@POST
+	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	public CreateAlbumResource addAlbum(CreateAlbumResource request){
+		//return "test";
+		
+		System.out.println(request.toString());
+		return request;
+	}
+	 
 
 }

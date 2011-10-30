@@ -3,6 +3,7 @@
 
 	<target name="init">
 		<property name="tomcat.dest" value="/opt/tomcat/webapps" />
+		<property name="tomcat.root" value="/opt/tomcat/webapps/ROOT" />
 		<mkdir dir="build/classes"/>
 		<mkdir dir="dist" />
 	</target>
@@ -29,6 +30,9 @@
 	
 	<target name="deploy" depends="clean,war">
 		<copy file="dist/OneVillage.war" toDir="${tomcat.dest}" />
+		<copy toDir="${tomcat.root}" >
+			<fileset dir="WebPages" />
+		</copy>
 	</target>
 	
 	<target name="clean">
