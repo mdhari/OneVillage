@@ -4,10 +4,8 @@ import javax.ws.rs.core.MediaType;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.representation.Form;
 
-import edu.sjsu.carbonated.data.CreateAlbumResource;
-import edu.sjsu.carbonated.data.MyJaxbBean;
+import edu.sjsu.carbonated.data.AlbumResource;
 
 public class TestServices {
 
@@ -24,7 +22,7 @@ public class TestServices {
 //		   f.add("User", "michael");
 //		   f.add("Created_Date", "10/11/12");
 		   
-		   CreateAlbumResource newBean = new CreateAlbumResource("MyFirstPhotoAlbum", "My Desc", "michael", "created");
+		   AlbumResource newBean = new AlbumResource("MyFirstPhotoAlbum", "My Desc", "michael", "created");
 		   
 		   Client c = Client.create();
 		   WebResource r = c.resource("http://localhost:8080/OneVillage/photo/album");
@@ -42,7 +40,6 @@ public class TestServices {
 		
 		 TestServices tSvcs = new TestServices();
 		 tSvcs.testAddAlbum();
-			
 		 
 	 }
 

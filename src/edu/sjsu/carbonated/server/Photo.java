@@ -7,8 +7,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import edu.sjsu.carbonated.data.CreateAlbumResource;
-import edu.sjsu.carbonated.data.MyJaxbBean;
+import edu.sjsu.carbonated.data.AlbumResource;
+import edu.sjsu.carbonated.mongodbaccessors.MongoDBAlbum;
 
 
 /**
@@ -22,6 +22,7 @@ import edu.sjsu.carbonated.data.MyJaxbBean;
 @Path("/photo")
 public class Photo {
 
+	MongoDBAlbum mDBAlbum = new MongoDBAlbum();
 	// XXX: TO REMOVE
 	// This method is called if TEXT_PLAIN is request
 	@GET
@@ -61,9 +62,11 @@ public class Photo {
 	@POST
 	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-	public CreateAlbumResource addAlbum(CreateAlbumResource request){
+	public AlbumResource addAlbum(AlbumResource request){
 		//return "test";
-		
+
+		mDBAlbum.addEntry(request);
+
 		System.out.println(request.toString());
 		return request;
 	}
