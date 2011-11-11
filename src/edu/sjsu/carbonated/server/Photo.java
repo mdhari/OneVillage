@@ -1,17 +1,26 @@
 package edu.sjsu.carbonated.server;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -22,7 +31,9 @@ import com.sun.jersey.multipart.MultiPart;
 
 import edu.sjsu.carbonated.data.AlbumResource;
 import edu.sjsu.carbonated.data.PhotoResource;
+import edu.sjsu.carbonated.data.PhotoResponse;
 import edu.sjsu.carbonated.mongodbaccessors.MongoDBAlbum;
+import edu.sjsu.carbonated.util.Utils;
 
 
 /**
@@ -36,6 +47,9 @@ import edu.sjsu.carbonated.mongodbaccessors.MongoDBAlbum;
 @Path("/photo")
 public class Photo {
 
+	public static final String ServiceTag = "PHOTO: ";
+	public static final String uploadLocation = "/Users/michael/uploaded/albums/";
+	
 	MongoDBAlbum mDBAlbum = new MongoDBAlbum();
 	// XXX: TO REMOVE
 	// This method is called if TEXT_PLAIN is request
@@ -95,12 +109,123 @@ public class Photo {
 	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
 	public AlbumResource addAlbum(AlbumResource request){
-		//return "test";
+		
+		System.out.println(ServiceTag + "[addAlbum] request");
+		
+		if(request.hasNull()){
+			System.out.println(ServiceTag + "[addAlbum] request had null, sending 400");
+			// TODO: Add a more detailed error response to indicate what parameter(s) were missing
+			throw new WebApplicationException(Response.status(400).entity("Error in your request").type(MediaType.APPLICATION_JSON_TYPE).build());
+		}
+		
+		// Generate a unique id for this album creation
+		request.setAlbum_id(UUID.randomUUID().toString());
+		// Commit it to data store
+		mDBAlbum.addAlbum(request);
+		
+		createDir(uploadLocation + request.getAlbum_id()); // create the dir on the backend
+		
+		// Current specification (2.1) says only send the album_id as a response
+		// Pretty bad from an allocation point of view
+		AlbumResource response = new AlbumResource();
+		response.setAlbum_id(request.getAlbum_id());
 
-		mDBAlbum.addEntry(request);
+		return response;
+		
+	}
+	
+	/**
+	 * http://aruld.info/handling-multiparts-in-restful-applications-using-jersey/
+	 * @param multiPart
+	 * @return
+	 */
+	@POST
+	@Path("/album/{album_id}")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	public PhotoResponse addPhotoToAlbum(@PathParam("album_id") int album_id, MultiPart multiPart){
+	
+		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_id>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
+		
+		System.out.println(ServiceTag + "[addPhotoToAlbumReq] for Album: " + album_id);
+		
+		System.out.println(multiPart.getBodyParts().get(0).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(1).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(2).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(3).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(4).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(5).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(6).getEntityAs(String.class));
+		
+		
+		String id = UUID.randomUUID().toString();
+		writeToFile2(multiPart.getBodyParts().get(7).getEntityAs(InputStream.class), 
+				uploadLocation + album_id + "/", id + ".png");
+		
+		
+		return new PhotoResponse(id + ".png");
+	}
+	
+	@POST
+	@Path("/album/{album_id}")
+	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	public Response updateAlbum(@PathParam("album_id") String album_id, AlbumResource request){
+	
+		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_id>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
+		
+		System.out.println(ServiceTag + "[updateAlbumReq] for AlbumID: " + album_id + " request: " + request);
+		System.out.println(ServiceTag + "asdf" + request);
 
-		System.out.println(request.toString());
-		return request;
+		
+		mDBAlbum.updateAlbum(album_id,request);
+		
+		return Response.status(200).build();
+	}
+	
+	@DELETE
+	@Path("/album/{album_id}")
+	public Response deleteAlbum(@PathParam("album_id") String album_id, @QueryParam("user_id") String user_id){
+	
+		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_id>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
+		
+		mDBAlbum.removeAlbum(album_id,user_id);
+		
+		System.out.println(ServiceTag + "[deleteAlbumReq] User: " + user_id + " for Album: " + album_id);
+		
+		return Response.status(200).build();
+	}
+	
+	@GET
+	@Path("/album")
+	@Produces({MediaType.APPLICATION_JSON})
+	public String getAlbum(@QueryParam("user_id") String user_id){
+	
+		String toReturn;
+		
+		if(Utils.isEmptyString(user_id)){
+			toReturn = mDBAlbum.getAllAlbums();
+		}else{
+			toReturn = mDBAlbum.getAlbumsByUser(user_id);
+		}
+			
+		
+//		List<AlbumResource> list = new ArrayList<AlbumResource>();
+//		
+//		list.add(new AlbumResource("asdf", "asdf", "asdf", "asdf"));
+//		list.add(new AlbumResource("fasdf", "fdasdf", "fdasf", "fadsdf"));
+		
+		return toReturn;
+	}
+	
+	@GET
+	@Path("/album/{album_id}")
+	public Response getAllPhotosFromAlbum(@PathParam("album_id") int album_id){
+	
+		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_id>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
+		
+		System.out.println(ServiceTag + "[getAllPhotosFromAlbumReq] for Album: " + album_id);
+		
+		return Response.status(200).build();
 	}
 	
 	/**
@@ -138,11 +263,18 @@ public class Photo {
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response uploadTest(MultiPart multiPart){
 	
-		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_i d>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
+		//{"Time Taken": “<time_taken>","Latitude": "<latitude>", "Longitude":"<longitude>",”Album”:”<album_id>”, “Photo”:”<actual_picture>”,“User” : “<created_by”,”Description”: “<description>”}
 		
 		System.out.println(multiPart.getBodyParts().get(0).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(1).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(2).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(3).getEntityAs(String.class));
+		System.out.println(multiPart.getBodyParts().get(4).getEntityAs(String.class));
+		
+		
+		
 		String id = UUID.randomUUID().toString();
-		writeToFile(multiPart.getBodyParts().get(1).getEntityAs(InputStream.class), 
+		writeToFile(multiPart.getBodyParts().get(6).getEntityAs(InputStream.class), 
 				"/Users/michael/uploaded/" + id + ".png");
 		
 		
@@ -192,6 +324,37 @@ public class Photo {
 		}
  
 	}
+	
+	private void createDir(String uploadedFileLocation){
+		new File(uploadedFileLocation).mkdirs(); // since its not saved, no worries about mem
+	}
+	
+	private void writeToFile2(InputStream uploadedInputStream,
+			String uploadedFileLocation,String filename) {
+	 System.out.println(uploadedFileLocation);
+			try {
+
+				FileOutputStream fout = new FileOutputStream(new File(uploadedFileLocation + filename));
+				
+				int read = 0;
+				byte[] bytes = new byte[1024];
+			 
+				while ((read = uploadedInputStream.read(bytes)) != -1) {
+					fout.write(bytes, 0, read);
+				}
+
+				fout.flush();
+				fout.close();
+
+			}catch (FileNotFoundException e){
+				throw new WebApplicationException(Response.status(404).entity("Album not found").type(MediaType.APPLICATION_JSON_TYPE).build());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	 
+		}
+		 
 	 
 
 }
