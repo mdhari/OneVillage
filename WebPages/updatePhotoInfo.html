@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Add Album</title>
+<script type="text/javascript"
+	src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+
+$.ajax({
+    url: "http://localhost:8080/OneVillage/photo/album/1234",
+    type: "POST",
+    contentType: "application/json;charset=utf-8",
+    data: '{"photo_id":"12345","user_id":"1234","time_taken":"12:13:12"}',
+    dataType: "application/json",
+    success: function(result) {
+    alert(result);
+    }
+});
+
+
+</script>
+
+</body>
+</html>
