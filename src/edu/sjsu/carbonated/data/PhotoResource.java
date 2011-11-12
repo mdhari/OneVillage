@@ -2,7 +2,12 @@ package edu.sjsu.carbonated.data;
 
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.bind.annotation.XmlRootElement;
+
+import edu.sjsu.carbonated.util.Utils;
 
 @XmlRootElement
 public class PhotoResource {
@@ -11,7 +16,7 @@ public class PhotoResource {
 	 * and setters because JAXB can set it correctly. But its usually 
 	 * bad practice to expose all properties of a class publicly
 	 */
-	
+	private String photo_id;
 	private String user_id;
 	private String time_taken;
 	private String latitude;
@@ -19,6 +24,46 @@ public class PhotoResource {
 	private String album_id;
 	private String created_by;
 	private String description;
+	
+	
+	/**
+	 * Less maintenance for storing in the DB
+	 * 
+	 * @return Map
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Map getMap() {
+
+		Map map = new HashMap();
+		
+		if (!Utils.isEmptyString(photo_id))
+			map.put("photo_id", photo_id);		
+		
+		if (!Utils.isEmptyString(user_id))
+			map.put("user_id", user_id);
+		
+		if (!Utils.isEmptyString(time_taken))
+			map.put("time_taken", time_taken);
+		
+		if (!Utils.isEmptyString(latitude))
+			map.put("latitude", latitude);
+		
+		if (!Utils.isEmptyString(longitude))
+			map.put("longitude", longitude);
+		
+		if (!Utils.isEmptyString(album_id))
+			map.put("album_id", album_id);
+		
+		if (!Utils.isEmptyString(created_by))
+			map.put("created_by", created_by);
+		
+		if (!Utils.isEmptyString(description))
+			map.put("description", description);
+		
+
+		return map;
+
+	}
 	
 	public PhotoResource(){
 		// JAXB needs this
@@ -116,15 +161,24 @@ public class PhotoResource {
 		return user_id;
 	}
 
+	public void setPhoto_id(String photo_id) {
+		this.photo_id = photo_id;
+	}
+
+	public String getPhoto_id() {
+		return photo_id;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "PhotoResource [user_id=" + user_id + ", time_taken="
-				+ time_taken + ", latitude=" + latitude + ", longitude="
-				+ longitude + ", album_id=" + album_id + ", created_by="
-				+ created_by + ", description=" + description + "]";
+		return "PhotoResource [photo_id=" + photo_id + ", user_id=" + user_id
+				+ ", time_taken=" + time_taken + ", latitude=" + latitude
+				+ ", longitude=" + longitude + ", album_id=" + album_id
+				+ ", created_by=" + created_by + ", description=" + description
+				+ "]";
 	}
 
 

@@ -21,43 +21,43 @@ package edu.sjsu.carbonated.mongodbaccessors;
  * @date: Nov 6, 2011
  */
 
-import java.net.UnknownHostException;
-import java.util.Set;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.Mongo;
+import com.mongodb.DBCollection;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.DB;
 import com.mongodb.MongoException;
 import com.mongodb.util.JSON;
 
 import edu.sjsu.carbonated.data.AlbumResource;
 import edu.sjsu.carbonated.data.PhotoResource;
 
-public class MongoDBAlbum {
+import java.lang.reflect.Field;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.List;
 
-	protected static final String albumCollection = "Album";
+public class MongoDBPhoto {
+
 	protected static final String photoCollection = "Photo";
 	protected static final String sDB = "OneVillage";
 	protected static final String sHost = "localhost";
-	protected static final String photo_url_location = "http://localhost:8080/albums/";
 	
 	
 
 	Mongo m = null;
 	DB db = null;
-	DBCollection albumColl = null;
-	DBCollection photoColl = null;
-	
+	DBCollection collection = null;
 
-	public MongoDBAlbum() {
+	public MongoDBPhoto() {
 
 		try {
 			m = new Mongo(sHost);
 			DB db = m.getDB(sDB);
-			albumColl = db.getCollection(albumCollection);
-			photoColl = db.getCollection(photoCollection);
+			collection = db.getCollection(photoCollection);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -77,126 +77,15 @@ public class MongoDBAlbum {
 	}
 
 	public void truncateDBCollection() {
-		albumColl.drop();
-	}
-
-	/**
-	 * Uses the getMap method in AlbumResource to insert into the database.
-	 * <p>
-	 * Make sure no fields are null and that album_id has already been set
-	 * before reaching here.
-	 * 
-	 * @param albumRes
-	 */
-	public void addAlbum(AlbumResource albumRes) {
-
-		BasicDBObject info = new BasicDBObject();
-		info.putAll(albumRes.getMap());
-		albumColl.insert(info);
-
+		collection.drop();
 	}
 	
-	public void addPhotoToAlbum(AlbumResource albumRes){
+	public void addPhotoToAlbum(PhotoResource photoRes){
 		 
 		BasicDBObject info = new BasicDBObject();
-		info.putAll(albumRes.getMap());
-		info.put("photo_url", photo_url_location+albumRes.getAlbum_id()+"/"+albumRes.getPhoto_id() +".png");
-		photoColl.insert(info);
+		info.putAll(photoRes.getMap());
+		collection.insert(info);
 		
-	}
-
-	public String getAllAlbums() {
-
-		String toReturn = "[";
-		
-		DBCursor cur = albumColl.find(new BasicDBObject(), new BasicDBObject("_id",0));
-
-		while (cur.hasNext()) {
-			toReturn += cur.next();
-		}
-		
-		toReturn += "]";
-		
-		return toReturn;
-		
-		
-	}
-	
-	public String getAlbumsByUser(String user_id){
-		
-		String toReturn = "[";
-		
-		DBCursor cur = albumColl.find(new BasicDBObject("user_id",user_id),new BasicDBObject("_id",0));
-
-		while (cur.hasNext()) {
-			toReturn += cur.next();
-		}
-		
-		toReturn += "]";
-		
-		return toReturn;
-	}
-
-	/**
-	 * Will update the name and description of an album. All Resources must have
-	 * a getMap method returning all those that need to be updated only.
-	 * <p>
-	 * No null values should be present in the map.
-	 * 
-	 * @param album_id
-	 * @param albumRes
-	 */
-	public void updateAlbum(String album_id, AlbumResource albumRes) {
-
-		BasicDBObject query = new BasicDBObject();
-
-		BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(
-				albumRes.getMap()));
-
-		query.put("album_id", album_id);
-
-		albumColl.update(query, update);
-
-	}
-	
-	public void updatePhoto(String album_id, String photo_id, AlbumResource albumRes) {
-
-		//BasicDBObject query = new BasicDBObject("$and", new BasicDBObject("album_id",album_id).append("photo_id", photo_id));
-		BasicDBObject query = new BasicDBObject("$and", JSON.parse("[{\"album_id\":\""+album_id+"\"},{\"photo_id\":\""+photo_id+"\"}]"));
-		
-		BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(
-				albumRes.getMap()));
-
-		db.getCollection(albumCollection);
-		photoColl.update(query, update);
-
-	}
-
-	/**
-	 * Currently only requires album_id to be passed since Authentication system
-	 * is not up. Removes the metadata from the data store.
-	 * 
-	 * @param album_id
-	 * @param user_id
-	 */
-	public void removeAlbum(String album_id, String user_id) {
-
-		BasicDBObject removeQuery = new BasicDBObject();
-
-		removeQuery.put("album_id", album_id);
-
-		albumColl.remove(removeQuery);
-
-	}
-	
-	public void removePhoto(String user_id,String photo_id) {
-
-		BasicDBObject removeQuery = new BasicDBObject();
-
-		removeQuery.put("photo_id", photo_id);
-
-		photoColl.remove(removeQuery);
-
 	}
 
 	// public static void main(String[] args) throws Exception {

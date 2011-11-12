@@ -19,6 +19,8 @@ import edu.sjsu.carbonated.util.Utils;
 @XmlRootElement
 public class AlbumResource {
 
+
+
 	/**
 	 * MH: Apparently if you make these public, you don't need getters and
 	 * setters because JAXB can set it correctly. But its usually bad practice
@@ -26,6 +28,9 @@ public class AlbumResource {
 	 * <p>
 	 * Make sure you DO make getters and setters, JAXB needs them
 	 */
+	
+	private String photo_id;
+	
 	private String album_id;
 	private String album_name;
 	private String album_description;
@@ -66,6 +71,25 @@ public class AlbumResource {
 
 		if (!Utils.isEmptyString(created_date))
 			map.put("createdDate", created_date);
+		
+		if (!Utils.isEmptyString(photo_id))
+			map.put("photo_id", photo_id);		
+		
+		if (!Utils.isEmptyString(time_taken))
+			map.put("time_taken", time_taken);
+		
+		if (!Utils.isEmptyString(latitude))
+			map.put("latitude", latitude);
+		
+		if (!Utils.isEmptyString(longitude))
+			map.put("longitude", longitude);
+		
+		if (!Utils.isEmptyString(created_by))
+			map.put("created_by", created_by);
+		
+		if (!Utils.isEmptyString(description))
+			map.put("description", description);
+		
 
 		return map;
 
@@ -78,6 +102,31 @@ public class AlbumResource {
 		this.album_description = album_description;
 		this.user_id = user_id;
 		this.created_date = created_date;
+	}
+	
+	/** 
+	 * for photo addition to db
+	 * @param photo_id
+	 * @param album_id
+	 * @param user_id
+	 * @param time_taken
+	 * @param latitude
+	 * @param longitude
+	 * @param created_by
+	 * @param description
+	 */
+	public AlbumResource(String photo_id, String album_id, String user_id,
+			String time_taken, String latitude, String longitude,
+			String created_by, String description) {
+		
+		this.photo_id = photo_id;
+		this.album_id = album_id;
+		this.user_id = user_id;
+		this.time_taken = time_taken;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.created_by = created_by;
+		this.description = description;
 	}
 
 	public boolean hasNull() {
@@ -206,17 +255,26 @@ public class AlbumResource {
 		return description;
 	}
 
+	public void setPhoto_id(String photo_id) {
+		this.photo_id = photo_id;
+	}
+
+	public String getPhoto_id() {
+		return photo_id;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "AlbumResource [album_id=" + album_id + ", album_name="
-				+ album_name + ", album_description=" + album_description
-				+ ", user_id=" + user_id + ", created_date=" + created_date
-				+ ", time_taken=" + time_taken + ", latitude=" + latitude
-				+ ", longitude=" + longitude + ", created_by=" + created_by
-				+ ", description=" + description + "]";
+		return "AlbumResource [photo_id=" + photo_id + ", album_id=" + album_id
+				+ ", album_name=" + album_name + ", album_description="
+				+ album_description + ", user_id=" + user_id
+				+ ", created_date=" + created_date + ", time_taken="
+				+ time_taken + ", latitude=" + latitude + ", longitude="
+				+ longitude + ", created_by=" + created_by + ", description="
+				+ description + "]";
 	}
 
 }
