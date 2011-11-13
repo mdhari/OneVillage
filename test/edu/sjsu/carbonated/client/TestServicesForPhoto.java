@@ -66,7 +66,7 @@ public class TestServicesForPhoto {
 		System.out.println(result);
 
 	}
-	
+
 	public void getAllPhotosInAlbum() {
 
 		Client c = Client.create();
@@ -138,26 +138,29 @@ public class TestServicesForPhoto {
 						new BodyPart(logo,
 								MediaType.APPLICATION_OCTET_STREAM_TYPE));
 
-		r.type(MediaType.MULTIPART_FORM_DATA_TYPE)
+		String response = r.type(MediaType.MULTIPART_FORM_DATA_TYPE)
 				.accept(MediaType.APPLICATION_JSON_TYPE)
 				.post(String.class, multiPart);
+
+		System.out.println(response);
 
 	}
 
 	public void updatePhotoInAlbum() {
-		AlbumResource newBean = new AlbumResource("0efca100-3149-4880-954e-0d7a3bd356ff", null, "michael",
-				null, null, null,null, "this is hopefully a one time thing");
+		AlbumResource newBean = new AlbumResource(
+				"0efca100-3149-4880-954e-0d7a3bd356ff", null, "michael", null,
+				null, null, null, "this is hopefully a one time thing");
 
 		Client c = Client.create();
 		WebResource r = c
 				.resource("http://localhost:8080/OneVillage/photo/album/f07c625f-27a6-4c22-9e6e-5ae15f7e5a61");
 
-		String result = r.type(MediaType.APPLICATION_JSON_TYPE)
-				.post(String.class, newBean);
+		String result = r.type(MediaType.APPLICATION_JSON_TYPE).post(
+				String.class, newBean);
 
 		System.out.println(result);
 	}
-	
+
 	public void testDeletePhoto() {
 
 		Client c = Client.create();
@@ -170,7 +173,7 @@ public class TestServicesForPhoto {
 		System.out.println(result);
 
 	}
-	
+
 	public void getPhoto() {
 
 		Client c = Client.create();
@@ -191,10 +194,10 @@ public class TestServicesForPhoto {
 		// tSvcs.testDeleteAlbum();
 		// tSvcs.testGetAllAlbum();
 		// tSvcs.testGetAllAlbumByUser();
-		//tSvcs.addPhotoToAlbum();
-		//tSvcs.updatePhotoInAlbum();
-		//tSvcs.testDeletePhoto();
-		//tSvcs.getPhoto();
+		// tSvcs.addPhotoToAlbum();
+		// tSvcs.updatePhotoInAlbum();
+		// tSvcs.testDeletePhoto();
+		// tSvcs.getPhoto();
 		tSvcs.getAllPhotosInAlbum();
 	}
 
