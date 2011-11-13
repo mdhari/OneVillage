@@ -24,16 +24,22 @@ package edu.sjsu.carbonated.mongodbaccessors;
 import java.net.UnknownHostException;
 import java.util.Set;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.Mongo;
 import com.mongodb.MongoException;
+import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 
 import edu.sjsu.carbonated.data.AlbumResource;
 import edu.sjsu.carbonated.data.PhotoResource;
+import edu.sjsu.carbonated.util.Utils;
 
 public class MongoDBAlbum {
 
@@ -104,6 +110,41 @@ public class MongoDBAlbum {
 		photoColl.insert(info);
 		
 	}
+	
+	public String getPhoto(String album_id, String photo_id) {
+
+		String toReturn = "";
+		
+		BasicDBObject query = new BasicDBObject("$and", JSON.parse("[{\"album_id\":\""+album_id+"\"},{\"photo_id\":\""+photo_id+"\"}]"));
+		
+		DBCursor cur = photoColl.find(query, new BasicDBObject("_id",0));
+
+		while (cur.hasNext()) {
+			toReturn += cur.next();
+		}
+
+		
+		return toReturn;
+		
+		
+	}
+	
+	public String getAllPhotoInAlbum(String album_id) {
+
+		String toReturn = "[";
+		
+		DBCursor cur = photoColl.find(new BasicDBObject(), new BasicDBObject("_id",0));
+
+		while (cur.hasNext()) {
+			toReturn += cur.next();
+		}
+		
+		toReturn += "]";
+		
+		return toReturn;
+		
+		
+	}
 
 	public String getAllAlbums() {
 
@@ -148,14 +189,18 @@ public class MongoDBAlbum {
 	 */
 	public void updateAlbum(String album_id, AlbumResource albumRes) {
 
-		BasicDBObject query = new BasicDBObject();
+		BasicDBObject query = new BasicDBObject("$and", JSON.parse("[{\"album_id\":\""+album_id+"\"},{\"user_id\":\""+albumRes.getUser_id()+"\"}]"));
 
 		BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(
-				albumRes.getMap()));
+				albumRes.getUpdateAlbumMap()));
 
-		query.put("album_id", album_id);
-
-		albumColl.update(query, update);
+		WriteResult wr = albumColl.update(query, update);
+		
+		// mongodb way of saying there was no record updated...
+		if(wr.getLastError().getString("updatedExisting") == "false"){
+			throw new WebApplicationException(Response.status(404)
+					.entity("Album not found").build());
+		}
 
 	}
 	
@@ -166,9 +211,13 @@ public class MongoDBAlbum {
 		
 		BasicDBObject update = new BasicDBObject("$set", new BasicDBObject(
 				albumRes.getMap()));
-
-		db.getCollection(albumCollection);
-		photoColl.update(query, update);
+		
+		WriteResult wr = photoColl.update(query, update);
+		
+		if(wr.getLastError().getString("updatedExisting") == "false"){
+			throw new WebApplicationException(Response.status(404)
+					.entity("Album/Photo not found").build());
+		}
 
 	}
 
@@ -181,19 +230,22 @@ public class MongoDBAlbum {
 	 */
 	public void removeAlbum(String album_id, String user_id) {
 
-		BasicDBObject removeQuery = new BasicDBObject();
-
-		removeQuery.put("album_id", album_id);
+		BasicDBObject removeQuery = new BasicDBObject("$and", JSON.parse("[{\"album_id\":\""+album_id+"\"},{\"user_id\":\""+user_id+"\"}]"));
 
 		albumColl.remove(removeQuery);
+		photoColl.remove(new BasicDBObject("album_id",album_id));
+//		System.out.println(wr.getLastError().getString("n"));
+//		// mongodb way of detecting deletion
+//		if(wr.getLastError().getString("n") == "0"){
+//			throw new WebApplicationException(Response.status(404)
+//					.entity("Album not found").build());
+//		}
 
 	}
 	
 	public void removePhoto(String user_id,String photo_id) {
 
-		BasicDBObject removeQuery = new BasicDBObject();
-
-		removeQuery.put("photo_id", photo_id);
+		BasicDBObject removeQuery = new BasicDBObject("$and", JSON.parse("[{\"photo_id\":\""+photo_id+"\"},{\"user_id\":\""+user_id+"\"}]"));
 
 		photoColl.remove(removeQuery);
 

@@ -1,9 +1,16 @@
 package edu.sjsu.carbonated.data;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import edu.sjsu.carbonated.util.Utils;
@@ -46,6 +53,20 @@ public class AlbumResource {
 
 	public AlbumResource() {
 	} // JAXB needs this
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public Map getUpdateAlbumMap() {
+	
+		Map map = new HashMap();
+		
+		if (!Utils.isEmptyString(album_name))
+			map.put("album_name", album_name);
+
+		if (!Utils.isEmptyString(album_description))
+			map.put("album_description", album_description);
+		
+		return map;
+	}
 
 	/**
 	 * Less maintenance for storing in the DB
@@ -129,7 +150,7 @@ public class AlbumResource {
 		this.description = description;
 	}
 
-	public boolean hasNull() {
+	public boolean albumCreationHasNull() {
 		if (Utils.isEmptyString(album_name)
 				|| Utils.isEmptyString(album_description)
 				|| Utils.isEmptyString(user_id)
@@ -137,6 +158,20 @@ public class AlbumResource {
 			return true;
 		}
 		return false;
+	}
+	
+	public void validationForAlbumCreation(){
+
+		try { //http://exampledepot.com/egs/java.text/ParseDate.html
+		    DateFormat formatter = new SimpleDateFormat("MM/dd/yy");
+		    Date date = (Date)formatter.parse(created_date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+			throw new WebApplicationException(Response.status(400)
+					.entity("Date format must be in the form of: MM/dd/yy")
+					.type(MediaType.TEXT_PLAIN_TYPE).build());
+			
+		}
 	}
 
 	/**
