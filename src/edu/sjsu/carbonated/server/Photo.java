@@ -146,7 +146,7 @@ public class Photo {
 		// validate the time_taken field at least
 		try { //http://exampledepot.com/egs/java.text/ParseDate.html
 		    DateFormat formatter = new SimpleDateFormat("MM/dd/yy");
-		    Date date = (Date)formatter.parse(multiPart.getBodyParts().get(1) // time_taken
+		    formatter.parse(multiPart.getBodyParts().get(1) // time_taken
 					.getEntityAs(String.class));
 		} catch (ParseException e) {
 			e.printStackTrace();

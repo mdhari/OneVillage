@@ -101,6 +101,19 @@ public class MongoDBAlbum {
 
 	public void addPhotoToAlbum(AlbumResource albumRes) {
 
+		// check to see if the user has the rights to the album
+		DBCursor cur = albumColl.find(new BasicDBObject("$and",
+				JSON.parse("[{\"album_id\":\"" + albumRes.getAlbum_id()
+						+ "\"},{\"user_id\":\"" + albumRes.getUser_id()
+						+ "\"}]")));
+		
+		// if the is no match betwen an album id and user id, throw error
+		if(!cur.hasNext()){
+			throw new WebApplicationException(Response.status(400)
+					.entity("Album not found").build());
+			
+		}
+		
 		BasicDBObject info = new BasicDBObject();
 		info.putAll(albumRes.getMap());
 		info.put("photo_url", photo_url_location + albumRes.getAlbum_id() + "/"
